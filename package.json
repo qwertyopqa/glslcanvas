@@ -1,12 +1,12 @@
 {
-  "name": "glslcanvas",
+  "name": "glslcv",
   "version": "0.0.6",
   "author": "Goncalo Tavares <qwerty.opqa@gmail.com>",
   "license": "MIT",
   "description": "",
   "repository": {
     "type": "git",
-    "url": "https://github.com/qwertyopqa/glslcanvas"
+    "url": "https://github.com/qwertyopqa/glslcv"
   },
   "source": "./src/index.ts",
   "files": [
