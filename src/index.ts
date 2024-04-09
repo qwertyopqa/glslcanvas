@@ -26,6 +26,7 @@ export class GLSL implements U.Localizer, S.AttribLocalizer {
   private initialized: boolean = false;
   readonly program: WebGLProgram;
   readonly shaders: S.ProgramShaders;
+  readonly id: string = GLSL.genID(6);
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -34,6 +35,7 @@ export class GLSL implements U.Localizer, S.AttribLocalizer {
     this.program = gl.createProgram() as WebGLProgram;
     this.shaders = S.setupNewProgShader(gl);
     this.addFragmentShaderMiddleware(new UMiddleware(canvas));
+    canvas.setAttribute('data-glslcv-id', this.id);
   }
 
   addFragmentShaderMiddleware(middleware:S.Middleware) {
@@ -84,16 +86,21 @@ export class GLSL implements U.Localizer, S.AttribLocalizer {
     this.gl ? glClear(this.gl) : null;
     return this;
   }
-  draw() {
+  drawFrame() {
+    this.compile();
+    resizeCanvasToDisplaySize(this.gl, this.canvas);
     this.clear();
     this.runUniformUpdaters();
     this.VS.draw();
     return this;
   }
-  loop() {
-    resizeCanvasToDisplaySize(this.gl, this.canvas);
-    this.draw();
+  private loop() {
     requestAnimationFrame(() => this.loop());
+    return this.drawFrame();
+  }
+  play() {
+    console.log('Playing: {id: %s}', this.id);
+    return this.loop();
   }
   get FS() { return this.shaders.fragment; }
   get VS() { return this.shaders.vertex; }
@@ -103,6 +110,18 @@ export namespace GLSL {
   export import Uniform = U;
 
   export const boot = () => {};
+
+  export const genID = (size:number) => {
+    const MASK = 0x3d
+    const LETTERS = 'abcdefghijklmnopqrstuvwxyz'
+    const NUMBERS = '1234567890'
+    const charset = `${NUMBERS}${LETTERS}${LETTERS.toUpperCase()}`.split('')
+
+    const bytes = new Uint8Array(size)
+    crypto.getRandomValues(bytes)
+
+    return bytes.reduce((acc, byte) => `${acc}${charset[byte & MASK]}`, '')
+  }
 
   export const init = (canvas: HTMLCanvasElement) => {
     const gl = canvas.getContext('webgl2') as WebGL2RenderingContext;
